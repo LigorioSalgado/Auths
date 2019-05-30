@@ -5,6 +5,10 @@ const morgan  =  require('morgan');
 const userModel = require('./models/users');
 const basicAuth = require('./basic');
 
+const authenticate  =  require('./auth');
+
+const {verifyToken,createToken} = require('./JWT');
+
 const  app =  express();
 
 const PORT = process.env.PORT || 3000;
@@ -21,6 +25,20 @@ app.get('/',(req,res) => {
 })
 
 app.get('/users/basic',[basicAuth] ,async (req,res) => {
+	const users = await userModel.find({})
+	res.status(200).json(users);
+})
+
+app.post('/login',async (req, res) => {
+
+	const user = await authenticate(req.body).catch((err) => res.status(401).json(err));
+	const token  =  createToken(user);
+	res.status(200).json({token})
+
+});
+
+app.get('/users/jwt',[verifyToken] ,async (req,res) => {
+	console.log(req.user)
 	const users = await userModel.find({})
 	res.status(200).json(users);
 })
